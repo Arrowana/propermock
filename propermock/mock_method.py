@@ -1,6 +1,12 @@
 import inspect
 
 
+class Times:
+    never = 0
+    once = 1
+    twice = 2
+
+
 def _return_value_annotation_check(method, return_value):
     return_annotation = inspect.signature(method).return_annotation
     if return_annotation != inspect._empty:  # If type is annotated we are strict
@@ -18,6 +24,7 @@ class _CallArgumentWithReturnValue:
         self._args = args
         self._kwargs = kwargs
         self.return_value = None  # TODO: Force user to return a value
+        self.called_times = 0
 
     def match(self, *args, **kwargs):
         return self._args == args and self._kwargs == kwargs
@@ -25,6 +32,10 @@ class _CallArgumentWithReturnValue:
     def returns(self, return_value):
         _return_value_annotation_check(self._method, return_value)
         self.return_value = return_value
+        return self
+
+    def verify_called(self, times: int):
+        assert self.called_times == times
 
 
 class _MockMethod:
@@ -60,6 +71,7 @@ class _MockMethod:
             (registered_setup for registered_setup in self._registered_setups if registered_setup.match(*args, **kwargs)),
             None)
         if registered_setup:
+            registered_setup.called_times += 1
             return registered_setup.return_value
         else:
             raise AssertionError('No setup for the corresponding call')

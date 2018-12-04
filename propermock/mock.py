@@ -1,5 +1,5 @@
 import inspect
-from .mock_method import create_mock_method
+from .mock_method import create_mock_method, Times
 
 
 class Mock:

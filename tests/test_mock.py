@@ -1,5 +1,5 @@
 import pytest
-from propermock.mock import Mock
+from propermock.mock import Mock, Times
 
 
 def test_mock_has_mocked_class_methods():
@@ -60,14 +60,6 @@ def test_mock_method_verify_called_raises_when_called_with_wrong_number_of_times
         farm_mock.harvest_potato.verify_called(0)
 
 
-# TODO: def test_raise_exception_when_method_called_with_argument_with_type_not_matching_return_annotation():
-#     farm_mock = Mock(_MegaFarm)
-#
-#     farm_mock.harvest_potato.returns(1)
-#
-#     with pytest.raises(TypeError):
-#         farm_mock.harvest_potato(1.02)
-
 def test_mock_method_setup_call_returns_value_when_called_with_matching_params():
     farm_mock = Mock(_Farm)
     farm_mock.harvest_vegetables.setup(['potato', 'eggplant']).returns(1)
@@ -101,6 +93,33 @@ def test_mock_method_setup_call_raises_when_called_with_non_matching_params():
         farm_mock.harvest_vegetables(112)
 
 
+def test_mock_method_setup_and_returns_can_be_verified_when_called_once():
+    farm_mock = Mock(_Farm)
+    farm_mock_harvest_call = farm_mock.harvest_vegetables.setup(['potato', 'eggplant']).returns(2)
+
+    farm_mock.harvest_vegetables(['potato', 'eggplant'])
+
+    farm_mock_harvest_call.verify_called(Times.once)
+
+
+def test_mock_method_setup_and_returns_can_be_verified_when_never_called():
+    farm_mock = Mock(_Farm)
+    farm_mock_harvest_call = farm_mock.harvest_vegetables.setup(['potato', 'eggplant']).returns(2)
+
+    farm_mock_harvest_call.verify_called(Times.never)
+
+
+def test_mock_method_setup_and_returns_raises_when_verified_and_not_called():
+    farm_mock = Mock(_Farm)
+    farm_mock_harvest_call = farm_mock.harvest_vegetables.setup(['potato', 'eggplant']).returns(2)
+
+    with pytest.raises(AssertionError, message='Method called 0 time(s)'):
+        farm_mock_harvest_call.verify_called(Times.once)
+
+    with pytest.raises(AssertionError, message='Method called 0 time(s)'):
+        farm_mock_harvest_call.verify_called(Times.twice)
+
+
 class _Farm:
 
     def harvest_potato(self):
@@ -108,3 +127,12 @@ class _Farm:
 
     def harvest_vegetables(self, vegetables_to_harvest: list, in_basket=True):
         pass
+
+
+# TODO: def test_raise_exception_when_method_called_with_argument_with_type_not_matching_return_annotation():
+#     farm_mock = Mock(_MegaFarm)
+#
+#     farm_mock.harvest_potato.returns(1)
+#
+#     with pytest.raises(TypeError):
+#         farm_mock.harvest_potato(1.02)
