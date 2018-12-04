@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/Arrowana/propermock.svg?branch=master)](https://travis-ci.com/Arrowana/propermock)
 
 # Summary
 

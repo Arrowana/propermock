@@ -68,11 +68,43 @@ def test_mock_method_verify_called_raises_when_called_with_wrong_number_of_times
 #     with pytest.raises(TypeError):
 #         farm_mock.harvest_potato(1.02)
 
+def test_mock_method_setup_call_returns_value_when_called_with_matching_params():
+    farm_mock = Mock(_Farm)
+    farm_mock.harvest_vegetables.setup(['potato', 'eggplant']).returns(1)
+
+    assert farm_mock.harvest_vegetables(['potato', 'eggplant']) == 1
+
+
+def test_mock_method_setup_call_returns_corresponding_value_when_called_with_certain_params():
+    farm_mock = Mock(_Farm)
+    farm_mock.harvest_vegetables.setup(['potato', 'eggplant']).returns(2)
+    farm_mock.harvest_vegetables.setup(['onion'], in_basket=False).returns(3)
+
+    assert farm_mock.harvest_vegetables(['potato', 'eggplant']) == 2
+    assert farm_mock.harvest_vegetables(['onion'], in_basket=False) == 3
+
+
+def test_mock_method_setup_call_raises_when_called_with_non_matching_params():
+    farm_mock = Mock(_Farm)
+    farm_mock.harvest_vegetables.setup(['potato', 'eggplant']).returns(1)
+
+    with pytest.raises(AssertionError, message='No setup for the corresponding call'):
+        farm_mock.harvest_vegetables(['eggplant', 'potato'])
+
+    with pytest.raises(AssertionError, message='No setup for the corresponding call'):
+        farm_mock.harvest_vegetables([])
+
+    with pytest.raises(AssertionError, message='No setup for the corresponding call'):
+        farm_mock.harvest_vegetables([1, 2])
+
+    with pytest.raises(AssertionError, message='No setup for the corresponding call'):
+        farm_mock.harvest_vegetables(112)
+
 
 class _Farm:
 
     def harvest_potato(self):
         pass
 
-    def harvest_vegetables(self, vegetables_to_harvest: list):
+    def harvest_vegetables(self, vegetables_to_harvest: list, in_basket=True):
         pass
